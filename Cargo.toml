@@ -13,15 +13,17 @@ readme = "README.md"
 exclude = [".github", "benches"]
 
 [dependencies]
-libc = "0.2.69"
-rustc-serialize = { version = "0.3", optional = true }
+#libc = "0.2.69"
+libc = { path = "../libc" }
+#rustc-serialize = { version = "0.3", optional = true }
+rustc_serialize = { path = "../rustc_serialize", optional = true }
 
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.0", features = ["std", "minwinbase", "minwindef", "ntdef", "profileapi", "sysinfoapi", "timezoneapi"] }
+#[target.'cfg(windows)'.dependencies]
+#winapi = { version = "0.3.0", features = ["std", "minwinbase", "minwindef", "ntdef", "profileapi", "sysinfoapi", "timezoneapi"] }
 
-[target.'cfg(target_os = "wasi")'.dependencies]
-wasi = "=0.10.0"
+#[target.'cfg(target_os = "wasi")'.dependencies]
+#wasi = "=0.10.0"
 
-[dev-dependencies]
-log = "0.4"
-winapi = { version = "0.3.0", features = ["std", "processthreadsapi", "winbase"] }
+#[dev-dependencies]
+#log = "0.4"
+#winapi = { version = "0.3.0", features = ["std", "processthreadsapi", "winbase"] }
