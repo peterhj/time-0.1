@@ -350,7 +350,7 @@ fn match_digits_i64(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bo
 
 fn match_fractional_seconds(ss: &mut &str) -> i32 {
     let mut value = 0;
-    let mut multiplier = NSEC_PER_SEC / 10;
+    let mut multiplier = (NSEC_PER_SEC as i32) / 10;
 
     let mut chars = ss.char_indices();
     let orig = *ss;

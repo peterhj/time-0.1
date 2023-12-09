@@ -65,16 +65,17 @@ mod duration;
 mod parse;
 mod sys;
 
-static NSEC_PER_SEC: i32 = 1_000_000_000;
+static NSEC_PER_SEC: i64 = 1_000_000_000;
 
 /// A record specifying a time value in seconds and nanoseconds, where
 /// nanoseconds represent the offset from the given second.
 ///
 /// For example a timespec of 1.2 seconds after the beginning of the epoch would
 /// be represented as {sec: 1, nsec: 200000000}.
+#[repr(C)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
-pub struct Timespec { pub sec: i64, pub nsec: i32 }
+pub struct Timespec { pub sec: i64, pub nsec: i64 }
 /*
  * Timespec assumes that pre-epoch Timespecs have negative sec and positive
  * nsec fields. Darwin's and Linux's struct timespec functions handle pre-
@@ -84,7 +85,8 @@ pub struct Timespec { pub sec: i64, pub nsec: i32 }
  * nsec: 800_000_000 }`.
  */
 impl Timespec {
-    pub fn new(sec: i64, nsec: i32) -> Timespec {
+    #[inline]
+    pub fn new(sec: i64, nsec: i64) -> Timespec {
         assert!(nsec >= 0 && nsec < NSEC_PER_SEC);
         Timespec { sec: sec, nsec: nsec }
     }
@@ -98,7 +100,7 @@ impl Add<Duration> for Timespec {
         // It is safe to unwrap the nanoseconds, because there cannot be
         // more than one second left, which fits in i64 and in i32.
         let d_nsec = (other - Duration::seconds(d_sec))
-                     .num_nanoseconds().unwrap() as i32;
+                     .num_nanoseconds().unwrap();
         let mut sec = self.sec + d_sec;
         let mut nsec = self.nsec + d_nsec;
         if nsec >= NSEC_PER_SEC {
@@ -120,7 +122,7 @@ impl Sub<Duration> for Timespec {
         // It is safe to unwrap the nanoseconds, because there cannot be
         // more than one second left, which fits in i64 and in i32.
         let d_nsec = (other - Duration::seconds(d_sec))
-                     .num_nanoseconds().unwrap() as i32;
+                     .num_nanoseconds().unwrap();
         let mut sec = self.sec - d_sec;
         let mut nsec = self.nsec - d_nsec;
         if nsec >= NSEC_PER_SEC {
@@ -405,7 +407,7 @@ pub fn at_utc(clock: Timespec) -> Tm {
     let Timespec { sec, nsec } = clock;
     let mut tm = empty_tm();
     sys::time_to_utc_tm(sec, &mut tm);
-    tm.tm_nsec = nsec;
+    tm.tm_nsec = nsec as i32;
     tm
 }
 
@@ -419,7 +421,7 @@ pub fn at(clock: Timespec) -> Tm {
     let Timespec { sec, nsec } = clock;
     let mut tm = empty_tm();
     sys::time_to_local_tm(sec, &mut tm);
-    tm.tm_nsec = nsec;
+    tm.tm_nsec = nsec as i32;
     tm
 }
 
@@ -436,7 +438,7 @@ impl Tm {
             _ => sys::local_tm_to_time(self)
         };
 
-        Timespec::new(sec, self.tm_nsec)
+        Timespec::new(sec, self.tm_nsec as i64)
     }
 
     /// Convert time to the local timezone
@@ -708,14 +710,14 @@ mod tests {
         debug!("tv1={} sec + {} nsec", tv1.sec, tv1.nsec);
 
         assert!(tv1.sec > SOME_RECENT_DATE);
-        assert!(tv1.nsec < 1000000000i32);
+        assert!(tv1.nsec < 1000000000i64);
 
         let tv2 = get_time();
         debug!("tv2={} sec + {} nsec", tv2.sec, tv2.nsec);
 
         assert!(tv2.sec >= tv1.sec);
         assert!(tv2.sec < SOME_FUTURE_DATE);
-        assert!(tv2.nsec < 1000000000i32);
+        assert!(tv2.nsec < 1000000000i64);
         if tv2.sec == tv1.sec {
             assert!(tv2.nsec >= tv1.nsec);
         }

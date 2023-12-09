@@ -97,7 +97,7 @@ mod inner {
         tm_to_time(tm)
     }
 
-    pub fn get_time() -> (i64, i32) {
+    pub fn get_time() -> (i64, i64) {
         unimplemented!()
     }
 
@@ -164,11 +164,11 @@ mod inner {
         tm_to_time(tm)
     }
 
-    pub fn get_time() -> (i64, i32) {
+    pub fn get_time() -> (i64, i64) {
         let ts = get_precise_ns();
         (
             ts as i64 / 1_000_000_000,
-            (ts as i64 % 1_000_000_000) as i32,
+            (ts as i64 % 1_000_000_000),
         )
     }
 
@@ -245,7 +245,7 @@ mod inner {
         tm_to_time(tm)
     }
 
-    pub fn get_time() -> (i64, i32) {
+    pub fn get_time() -> (i64, i64) {
         SteadyTime::now().t.raw()
     }
 
@@ -441,11 +441,11 @@ mod inner {
             }
         }
 
-        pub fn get_time() -> (i64, i32) {
+        pub fn get_time() -> (i64, i64) {
             use std::ptr;
             let mut tv = timeval { tv_sec: 0, tv_usec: 0 };
             unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
-            (tv.tv_sec as i64, tv.tv_usec * 1000)
+            (tv.tv_sec as i64, tv.tv_usec as i64 * 1000)
         }
 
         #[allow(deprecated)]
@@ -518,11 +518,11 @@ mod inner {
 
         use Duration;
 
-        pub fn get_time() -> (i64, i32) {
+        pub fn get_time() -> (i64, i64) {
             // SAFETY: libc::timespec is zero initializable.
             let mut tv: libc::timespec = unsafe { zeroed() };
             unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
-            (tv.tv_sec as i64, tv.tv_nsec as i32)
+            (tv.tv_sec as i64, tv.tv_nsec)
         }
 
         pub fn get_precise_ns() -> u64 {
@@ -700,9 +700,9 @@ mod inner {
         ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
     }
 
-    fn file_time_to_nsec(ft: &FILETIME) -> i32 {
+    fn file_time_to_nsec(ft: &FILETIME) -> i64 {
         let t = file_time_as_u64(ft) as i64;
-        ((t % HECTONANOSECS_IN_SEC) * 100) as i32
+        ((t % HECTONANOSECS_IN_SEC) * 100) as i64
     }
 
     fn file_time_to_unix_seconds(ft: &FILETIME) -> i64 {
@@ -819,7 +819,7 @@ mod inner {
         }
     }
 
-    pub fn get_time() -> (i64, i32) {
+    pub fn get_time() -> (i64, i64) {
         unsafe {
             let mut ft = mem::zeroed();
             GetSystemTimeAsFileTime(&mut ft);
