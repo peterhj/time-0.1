@@ -518,6 +518,15 @@ mod inner {
 
         use Duration;
 
+        #[inline]
+        pub fn get_time_unix() -> libc::timespec {
+            // SAFETY: libc::timespec is zero initializable.
+            let mut tv: libc::timespec = unsafe { zeroed() };
+            unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
+            tv
+        }
+
+        #[inline]
         pub fn get_time() -> (i64, i64) {
             // SAFETY: libc::timespec is zero initializable.
             let mut tv: libc::timespec = unsafe { zeroed() };
@@ -525,6 +534,7 @@ mod inner {
             (tv.tv_sec as i64, tv.tv_nsec)
         }
 
+        #[inline]
         pub fn get_precise_ns() -> u64 {
             // SAFETY: libc::timespec is zero initializable.
             let mut ts: libc::timespec = unsafe { zeroed() };
