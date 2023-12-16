@@ -147,6 +147,20 @@ impl Sub<Timespec> for Timespec {
 }
 
 
+#[cfg(unix)]
+pub fn get_time_second() -> Timespec {
+    let tv = sys::get_time_second_unix();
+    Timespec{sec: tv.tv_sec, nsec: tv.tv_nsec}
+}
+
+
+#[cfg(unix)]
+pub fn get_time_coarse() -> Timespec {
+    let tv = sys::get_time_coarse_unix();
+    Timespec::new(tv.tv_sec, tv.tv_nsec)
+}
+
+
 /**
  * Returns the current time as a `timespec` containing the seconds and
  * nanoseconds since 1970-01-01T00:00:00Z.

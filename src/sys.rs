@@ -519,6 +519,21 @@ mod inner {
         use Duration;
 
         #[inline]
+        pub fn get_time_second_unix() -> libc::timespec {
+            let mut tv_sec = 0;
+            unsafe { libc::time(&mut tv_sec); }
+            libc::timespec{tv_sec, tv_nsec: 0}
+        }
+
+        #[inline]
+        pub fn get_time_coarse_unix() -> libc::timespec {
+            // SAFETY: libc::timespec is zero initializable.
+            let mut tv: libc::timespec = unsafe { zeroed() };
+            unsafe { libc::clock_gettime(libc::CLOCK_REALTIME_COARSE, &mut tv); }
+            tv
+        }
+
+        #[inline]
         pub fn get_time_unix() -> libc::timespec {
             // SAFETY: libc::timespec is zero initializable.
             let mut tv: libc::timespec = unsafe { zeroed() };
