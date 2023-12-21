@@ -566,6 +566,13 @@ impl Tm {
             format: Fmt::Rfc3339,
         }
     }
+
+    pub fn rfc3339_nsec<'a>(&'a self) -> TmFmt {
+        TmFmt {
+            tm: self,
+            format: Fmt::Rfc3339Nsec,
+        }
+    }
 }
 
 #[derive(Copy, PartialEq, Debug, Clone)]
@@ -635,6 +642,7 @@ pub struct TmFmt<'a> {
 enum Fmt<'a> {
     Str(&'a str),
     Rfc3339,
+    Rfc3339Nsec,
     Ctime,
 }
 

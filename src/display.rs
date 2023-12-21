@@ -20,22 +20,39 @@ impl<'a> fmt::Display for TmFmt<'a> {
                 Ok(())
             }
             Fmt::Ctime => self.tm.to_local().asctime().fmt(fmt),
-            Fmt::Rfc3339 => {
+            Fmt::Rfc3339 | Fmt::Rfc3339Nsec => {
                 if self.tm.tm_utcoff == 0 {
                     TmFmt {
                         tm: self.tm,
-                        format: Fmt::Str("%Y-%m-%dT%H:%M:%SZ"),
-                    }.fmt(fmt)
+                        format: Fmt::Str("%Y-%m-%dT%H:%M:%S"),
+                    }.fmt(fmt)?;
+                    match self.format {
+                        Fmt::Rfc3339 => {
+                            write!(fmt, "Z")?;
+                        }
+                        Fmt::Rfc3339Nsec => {
+                            write!(fmt, ".{:09}Z", self.tm.tm_nsec)?;
+                        }
+                        _ => unreachable!()
+                    }
+                    Ok(())
                 } else {
-                    let s = TmFmt {
+                    TmFmt {
                         tm: self.tm,
                         format: Fmt::Str("%Y-%m-%dT%H:%M:%S"),
-                    };
+                    }.fmt(fmt)?;
+                    match self.format {
+                        Fmt::Rfc3339 => {}
+                        Fmt::Rfc3339Nsec => {
+                            write!(fmt, ".{:09}", self.tm.tm_nsec)?;
+                        }
+                        _ => unreachable!()
+                    }
                     let sign = if self.tm.tm_utcoff > 0 { '+' } else { '-' };
                     let mut m = abs(self.tm.tm_utcoff) / 60;
                     let h = m / 60;
                     m -= h * 60;
-                    write!(fmt, "{}{}{:02}:{:02}", s, sign, h, m)
+                    write!(fmt, "{}{:02}:{:02}", sign, h, m)
                 }
             }
         }
