@@ -419,10 +419,11 @@ mod inner {
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     mod mac {
         #[allow(deprecated)]
-        use libc::{self, timeval, mach_timebase_info};
+        use libc::{self, mach_timebase_info};
         #[allow(deprecated)]
         use std::sync::{Once, ONCE_INIT};
         use std::ops::{Add, Sub};
+        use std::ptr;
         use Duration;
 
         #[allow(deprecated)]
@@ -442,8 +443,8 @@ mod inner {
         }
 
         pub fn get_time() -> (i64, i64) {
-            use std::ptr;
-            let mut tv = timeval { tv_sec: 0, tv_usec: 0 };
+            // SAFETY: libc::timeval is zero initializable.
+            let mut tv: libc::timeval = unsafe { zeroed() };
             unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
             (tv.tv_sec as i64, tv.tv_usec as i64 * 1000)
         }
@@ -514,6 +515,7 @@ mod inner {
         use std::cmp::Ordering;
         use std::mem::zeroed;
         use std::ops::{Add, Sub};
+        use std::ptr;
         use libc;
 
         use Duration;
@@ -531,6 +533,14 @@ mod inner {
             let mut tv: libc::timespec = unsafe { zeroed() };
             unsafe { libc::clock_gettime(libc::CLOCK_REALTIME_COARSE, &mut tv); }
             tv
+        }
+
+        #[inline]
+        pub fn get_time_alt_unix() -> libc::timespec {
+            // SAFETY: libc::timeval is zero initializable.
+            let mut tv: libc::timeval = unsafe { zeroed() };
+            unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
+            libc::timespec{tv_sec: tv.tv_sec, tv_nsec: tv.tv_usec * 1000}
         }
 
         #[inline]
