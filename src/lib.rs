@@ -162,8 +162,8 @@ pub fn get_time_coarse() -> Timespec {
 
 
 #[cfg(unix)]
-pub fn get_time_alt() -> Timespec {
-    let tv = sys::get_time_alt_unix();
+pub fn get_time_usec() -> Timespec {
+    let tv = sys::get_time_usec_unix();
     Timespec::new(tv.tv_sec, tv.tv_nsec)
 }
 

@@ -536,7 +536,7 @@ mod inner {
         }
 
         #[inline]
-        pub fn get_time_alt_unix() -> libc::timespec {
+        pub fn get_time_usec_unix() -> libc::timespec {
             // SAFETY: libc::timeval is zero initializable.
             let mut tv: libc::timeval = unsafe { zeroed() };
             unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
