@@ -90,6 +90,11 @@ impl Timespec {
         assert!(nsec >= 0 && nsec < NSEC_PER_SEC);
         Timespec { sec: sec, nsec: nsec }
     }
+
+    #[inline]
+    pub fn utc(self) -> Tm {
+        at_utc(self)
+    }
 }
 
 impl Add<Duration> for Timespec {
