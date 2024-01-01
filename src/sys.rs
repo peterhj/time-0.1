@@ -559,13 +559,21 @@ mod inner {
             (tv.tv_sec as i64, tv.tv_nsec)
         }
 
+        #[cfg(target_os = "linux")]
         #[inline]
         pub fn get_precise_ns() -> u64 {
             // SAFETY: libc::timespec is zero initializable.
             let mut ts: libc::timespec = unsafe { zeroed() };
-            unsafe {
-                libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts);
-            }
+            unsafe { libc::clock_gettime(libc::CLOCK_BOOTTIME, &mut ts); }
+            (ts.tv_sec as u64) * 1000000000 + (ts.tv_nsec as u64)
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        #[inline]
+        pub fn get_precise_ns() -> u64 {
+            // SAFETY: libc::timespec is zero initializable.
+            let mut ts: libc::timespec = unsafe { zeroed() };
+            unsafe { libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts); }
             (ts.tv_sec as u64) * 1000000000 + (ts.tv_nsec as u64)
         }
 
