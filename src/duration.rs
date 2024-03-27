@@ -286,6 +286,10 @@ impl Duration {
         Ok(StdDuration::new(self.secs as u64, self.nanos as u32))
     }
 
+    pub fn to_f64(&self) -> f64 {
+        self.secs as f64 + (self.nanos as f64) * 1.0e-9
+    }
+
     /// Returns the raw value of duration.
     #[cfg(target_env = "sgx")]
     pub(crate) fn raw(&self) -> (i64, i32) {
