@@ -422,6 +422,7 @@ mod inner {
         use libc::{self, mach_timebase_info};
         #[allow(deprecated)]
         use std::sync::{Once, ONCE_INIT};
+        use std::mem::{zeroed};
         use std::ops::{Add, Sub};
         use std::ptr;
         use Duration;
@@ -440,6 +441,37 @@ mod inner {
                 });
                 &INFO
             }
+        }
+
+        #[inline]
+        pub fn get_time_second_unix() -> libc::timespec {
+            let mut tv_sec = 0;
+            unsafe { libc::time(&mut tv_sec); }
+            libc::timespec{tv_sec, tv_nsec: 0}
+        }
+
+        #[inline]
+        pub fn get_time_coarse_unix() -> libc::timespec {
+            // SAFETY: libc::timespec is zero initializable.
+            let mut tv: libc::timespec = unsafe { zeroed() };
+            unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
+            tv
+        }
+
+        #[inline]
+        pub fn get_time_usec_unix() -> libc::timespec {
+            // SAFETY: libc::timeval is zero initializable.
+            let mut tv: libc::timeval = unsafe { zeroed() };
+            unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
+            libc::timespec{tv_sec: tv.tv_sec, tv_nsec: tv.tv_usec as i64 * 1000}
+        }
+
+        #[inline]
+        pub fn get_time_unix() -> libc::timespec {
+            // SAFETY: libc::timespec is zero initializable.
+            let mut tv: libc::timespec = unsafe { zeroed() };
+            unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
+            tv
         }
 
         pub fn get_time() -> (i64, i64) {
