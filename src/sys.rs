@@ -418,8 +418,7 @@ mod inner {
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     mod mac {
-        #[allow(deprecated)]
-        use libc::{self, mach_timebase_info};
+        use libc;
         #[allow(deprecated)]
         use std::sync::{Once, ONCE_INIT};
         use std::mem::{zeroed};
@@ -427,21 +426,7 @@ mod inner {
         use std::ptr;
         use Duration;
 
-        #[allow(deprecated)]
-        fn info() -> &'static mach_timebase_info {
-            static mut INFO: mach_timebase_info = mach_timebase_info {
-                numer: 0,
-                denom: 0,
-            };
-            static ONCE: Once = ONCE_INIT;
-
-            unsafe {
-                ONCE.call_once(|| {
-                    mach_timebase_info(&mut INFO);
-                });
-                &INFO
-            }
-        }
+        const NANOS_PER_SEC: u64 = 1_000_000_000;
 
         #[inline]
         pub fn get_time_second_unix() -> libc::timespec {
@@ -481,14 +466,10 @@ mod inner {
             (tv.tv_sec as i64, tv.tv_usec as i64 * 1000)
         }
 
-        #[allow(deprecated)]
         #[inline]
         pub fn get_precise_ns() -> u64 {
-            unsafe {
-                let time = libc::mach_absolute_time();
-                let info = info();
-                time * info.numer as u64 / info.denom as u64
-            }
+            let tv = get_time_unix();
+            tv.tv_sec as u64 * NANOS_PER_SEC + tv.tv_nsec as u64
         }
 
         #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
