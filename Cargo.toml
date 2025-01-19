@@ -13,8 +13,7 @@ readme = "README.md"
 exclude = [".github", "benches"]
 
 [dependencies]
-#libc = "0.2.69"
-libc = { path = "../libc" }
+libc = "^0.2.69"
 #rustc-serialize = { version = "0.3", optional = true }
 rustc_serialize = { path = "../rustc_serialize", optional = true }
 

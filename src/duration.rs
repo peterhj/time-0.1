@@ -175,7 +175,7 @@ impl Duration {
     /// Returns the number of nanoseconds such that
     /// `nanos_mod_sec() + num_seconds() * NANOS_PER_SEC` is the total number of
     /// nanoseconds in the duration.
-    fn nanos_mod_sec(&self) -> i32 {
+    pub fn nanos_mod_sec(&self) -> i32 {
         if self.secs < 0 && self.nanos > 0 {
             self.nanos - NANOS_PER_SEC
         } else {
